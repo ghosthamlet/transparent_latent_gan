@@ -97,12 +97,13 @@ list_pathfile_pkl.sort()
 
 i_counter = 0
 for pathfile_pkl in list_pathfile_pkl:
-    print(pathfile_pkl)
+    if i_counter % 100 == 0:
+        print(pathfile_pkl)
     with open(pathfile_pkl, 'rb') as f:
         pkl_content = pickle.load(f)
     x = pkl_content['x']
     z = pkl_content['z']
-    num_cur = x.shape[0]
+    i_counter += x.shape[0]
     
     img_batch = np.stack(x, axis=0)
     x_processed = preprocess_input(img_batch)
@@ -122,17 +123,26 @@ if os.path.exists(pathfile_y) and os.path.exists(pathfile_z):
         # save y (features)
         y_concat = np.concatenate((old_y, np.concatenate(list_y)), axis=0)
         pathfile_sample_y = os.path.join(path_gan_sample_img, filename_sample_y)
-        print(y_concat.shape)
-    # with h5py.File(pathfile_sample_y, 'w') as f:
-        # f.create_dataset('y', data=y_concat)
+    with h5py.File(pathfile_sample_y, 'w') as f:
+        f.create_dataset('y', data=y_concat)
     with h5py.File(pathfile_z, 'r') as f:
         old_z = f['z'][:]
         # save z (latent variables)
         z_concat = np.concatenate((old_z, np.concatenate(list_z)), axis=0)
         pathfile_sample_z = os.path.join(path_gan_sample_img, filename_sample_z)
-    #with h5py.File(pathfile_sample_z, 'w') as f:
-        # f.create_dataset('z', data=z_concat)
+    with h5py.File(pathfile_sample_z, 'w') as f:
+        f.create_dataset('z', data=z_concat)
 
 else:
-    print("nooooope")
+    # save y (features)
+    y_concat = np.concatenate(list_y, axis=0)
+    pathfile_sample_y = os.path.join(path_gan_sample_img, filename_sample_y)
+    with h5py.File(pathfile_sample_y, 'w') as f:
+        f.create_dataset('y', data=y_concat)    
+
+    # save z (latent variables)
+    z_concat = np.concatenate(list_z, axis=0)
+    pathfile_sample_z = os.path.join(path_gan_sample_img, filename_sample_z)
+    with h5py.File(pathfile_sample_z, 'w') as f:
+        f.create_dataset('z', data=z_concat)
     
