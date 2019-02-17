@@ -13,7 +13,9 @@ from tensorflow.keras.applications.mobilenet import preprocess_input
 import ipywidgets
 from io import BytesIO
 from PIL import Image
+import PIL
 import base64
+import re
 
 
 """ make sure this notebook is running from root directory """
@@ -78,8 +80,8 @@ returns: an image as a result of the prediction model
 """
 def feature_to_image(features, our_Gs, feature_direction=feature_direction, save_name=None):
     feature_lock_status = np.zeros(len(feature_direction)).astype('bool')
-    print(feature_direction)
-    print(type(feature_direction))
+    #print(feature_direction)
+    #print(type(feature_direction))
     
     feature_directoion_disentangled = feature_axis.disentangle_feature_axis_by_idx(
         feature_direction, idx_base=np.flatnonzero(feature_lock_status))
@@ -101,8 +103,10 @@ def feature_to_image(features, our_Gs, feature_direction=feature_direction, save
         print('before running the code, download pre-trained model to project_root/asset_model/')
         raise
     """
-    x_sample = generate_image.gen_single_img(z=z_sample, Gs=our_Gs)
+    #print('general feature vec', features)
+    #print('z sample', z_sample[:20])
     
+    x_sample = generate_image.gen_single_img(z=z_sample, Gs=our_Gs)
     if save_name != None:
         generate_image.save_img(x_sample, save_name)
     
@@ -123,10 +127,24 @@ Helper method to take in a feature dictionary that is partially filled, and gene
 """
 def dict_to_image(feature_dict, our_Gs, feature_names=feature_names):
     features = []
-    
+    name_map = {'Bald': 'bald',
+         'Big_nose': 'nose_size',
+         'Blond_Hair': 'color',
+         'Eyeglasses': 'eyeglasses',
+         'Goatee': 'goatee',
+         'Male': 'gender',
+         'Mustache': 'mustache',
+         'No_Beard': 'beard',
+         'Old': 'age',
+         'Pale_Skin': 'skin_tone',
+         'Pointy_Nose': 'nose_pointy',
+         'Receding_Hairline': 'hairline'}
+
     for feature_name in feature_names:
         if feature_name in feature_dict.keys():
             features.append(feature_dict.get(feature_name))
+        if feature_name in name_map and name_map[feature_name] in feature_dict.keys():
+            features.append(feature_dict.get(name_map[feature_name]))
         else:
             features.append(0)
 
@@ -182,9 +200,11 @@ model.load_weights(get_list_model_save()[-1])
 def image_to_feature(image_path, model=model):
     img = np.asarray(PIL.Image.open(image_path).resize((128, 128), resample=PIL.Image.BILINEAR))
     x = np.stack([img], axis=0)
+    print(x)
     return model.predict(preprocess_input(x))
 
 def b64_image_to_feature(b64_str, model=model):
+    print(type(b64_str))
     image_data = re.sub('^data:image/.+;base64,', '', b64_str)
     img = np.asarray(PIL.Image.open(BytesIO(base64.b64decode(image_data))).resize((128, 128), resample=PIL.Image.BILINEAR))
     x = np.stack([img], axis=0)
