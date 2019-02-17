@@ -55,15 +55,16 @@ feature_names = feature_direction_name['name']
 path_style_gan_code= './src/model/stylegan'
 path_model = './asset_model/karras2019stylegan-ffhq-1024x1024.pkl'
 sys.path.append(path_style_gan_code)
-
+"""
+sess = tf.InteractiveSession()
 try:
     with open(path_model, 'rb') as file:
         G, D, Gs = pickle.load(file)
 except FileNotFoundError:
     print('before running the code, download pre-trained model to project_root/asset_model/')
     raise
-    
-    
+"""
+
 # more code
 path_model_save = './asset_model/cnn_face_attr_celeba'
 
@@ -75,7 +76,7 @@ Takes in a 40-D description of an individual, converts this into a 512-D space
 @param  features: a list of 40 values
 returns: an image as a result of the prediction model
 """
-def feature_to_image(features, feature_direction=feature_direction, save_name=None):
+def feature_to_image(features, our_Gs, feature_direction=feature_direction, save_name=None):
     feature_lock_status = np.zeros(len(feature_direction)).astype('bool')
     print(feature_direction)
     print(type(feature_direction))
@@ -91,8 +92,16 @@ def feature_to_image(features, feature_direction=feature_direction, save_name=No
     
     for direction, feature_val, idx_feature in zip(feature_direction_transposed, features, range(len(features))):
         z_sample = np.add(z_sample, feature_val * feature_directoion_disentangled[:, idx_feature] * step_size)
-    
-    x_sample = generate_image.gen_single_img(z=z_sample, Gs=Gs)
+    """
+    sess = tf.InteractiveSession()
+    try:
+        with open(path_model, 'rb') as file:
+            G, D, Gs = pickle.load(file)
+    except FileNotFoundError:
+        print('before running the code, download pre-trained model to project_root/asset_model/')
+        raise
+    """
+    x_sample = generate_image.gen_single_img(z=z_sample, Gs=our_Gs)
     
     if save_name != None:
         generate_image.save_img(x_sample, save_name)
@@ -103,6 +112,7 @@ def feature_to_image(features, feature_direction=feature_direction, save_name=No
 
     buffered = BytesIO()
     im.save(buffered, format="JPEG")
+    #img_str = buffered.getvalue()
     img_str = base64.b64encode(buffered.getvalue())
         
     return img_str
@@ -111,7 +121,7 @@ def feature_to_image(features, feature_direction=feature_direction, save_name=No
 """
 Helper method to take in a feature dictionary that is partially filled, and generate a prediction image from it.
 """
-def dict_to_image(feature_dict, feature_names=feature_names):
+def dict_to_image(feature_dict, our_Gs, feature_names=feature_names):
     features = []
     
     for feature_name in feature_names:
@@ -120,7 +130,7 @@ def dict_to_image(feature_dict, feature_names=feature_names):
         else:
             features.append(0)
 
-    feature_to_image(features)
+    return feature_to_image(features, our_Gs)
 
     
 def create_cnn_model(size_output=None, tf_print=False):
