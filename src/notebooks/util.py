@@ -67,5 +67,6 @@ def nearest_ims():
     
     pd.read_csv('data/processed/UTKFace_features.csv')
     
-    def euclidean_distance()
+    def euclidean_distance():
+        pass
     return ret
