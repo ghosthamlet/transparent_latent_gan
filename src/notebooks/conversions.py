@@ -127,18 +127,28 @@ Helper method to take in a feature dictionary that is partially filled, and gene
 """
 def dict_to_image(feature_dict, our_Gs, feature_names=feature_names):
     features = []
-    name_map = {'Bald': 'bald',
-         'Big_nose': 'nose_size',
-         'Blond_Hair': 'color',
-         'Eyeglasses': 'eyeglasses',
-         'Goatee': 'goatee',
-         'Male': 'gender',
-         'Mustache': 'mustache',
-         'No_Beard': 'beard',
-         'Old': 'age',
-         'Pale_Skin': 'skin_tone',
-         'Pointy_Nose': 'nose_pointy',
-         'Receding_Hairline': 'hairline'}
+    """
+    ['5_o_Clock_Shadow', 'Arched_Eyebrows', 'Attractive', 'Bags_Under_Eyes', 'Bald', 'Bangs', 'Big_Lips', 'Big_Nose', 'Black_Hair', 'Blond_Hair', 'Blurry', 'Brown_Hair', 'Bushy_Eyebrows', 'Chubby', 'Double_Chin', 'Eyeglasses', 'Goatee', 'Gray_Hair', 'Heavy_Makeup', 'High_Cheekbones', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'Narrow_Eyes', 'No_Beard', 'Oval_Face', 'Pale_Skin', 'Pointy_Nose', 'Receding_Hairline', 'Rosy_Cheeks', 'Sideburns', 'Smiling', 'Straight_Hair', 'Wavy_Hair', 'Wearing_Earrings', 'Wearing_Hat', 'Wearing_Lipstick', 'Wearing_Necklace', 'Wearing_Necktie', 'Young']
+    """
+    name_map = {
+        'Bald': 'bald',
+        'Big_Nose': 'nose_size',
+        'Blond_Hair': 'blond_hair',
+        'Black_Hair': 'black_hair',
+        'Gray_Hair': 'gray_hair',
+        'Eyeglasses': 'eyeglasses',
+        'Goatee': 'goatee',
+        'Male': 'gender',
+        'Mustache': 'mustache',
+        'No_Beard': 'beard',
+        'Young': 'age',
+        'Pale_Skin': 'skin_tone',
+        'Pointy_Nose': 'nose_pointy',
+        'Receding_Hairline': 'hairline',
+        'Chubby': 'chubby',
+        'Bangs': 'bangs',
+        'Wavy_Hair': 'wavy_hair'
+    }
 
     for feature_name in feature_names:
         if feature_name in feature_dict.keys():

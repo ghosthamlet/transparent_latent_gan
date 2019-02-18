@@ -124,6 +124,7 @@ if os.path.exists(pathfile_y) and os.path.exists(pathfile_z):
         y_concat = np.concatenate((old_y, np.concatenate(list_y)), axis=0)
         pathfile_sample_y = os.path.join(path_gan_sample_img, filename_sample_y)
     with h5py.File(pathfile_sample_y, 'w') as f:
+        print(y_concat.shape)
         f.create_dataset('y', data=y_concat)
     with h5py.File(pathfile_z, 'r') as f:
         old_z = f['z'][:]
@@ -131,6 +132,7 @@ if os.path.exists(pathfile_y) and os.path.exists(pathfile_z):
         z_concat = np.concatenate((old_z, np.concatenate(list_z)), axis=0)
         pathfile_sample_z = os.path.join(path_gan_sample_img, filename_sample_z)
     with h5py.File(pathfile_sample_z, 'w') as f:
+        print(z_concat.shape)
         f.create_dataset('z', data=z_concat)
 
 else:
