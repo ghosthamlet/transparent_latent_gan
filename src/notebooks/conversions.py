@@ -13,7 +13,9 @@ from tensorflow.keras.applications.mobilenet import preprocess_input
 import ipywidgets
 from io import BytesIO
 from PIL import Image
+import PIL
 import base64
+import re
 
 
 """ make sure this notebook is running from root directory """
@@ -55,15 +57,16 @@ feature_names = feature_direction_name['name']
 path_style_gan_code= './src/model/stylegan'
 path_model = './asset_model/karras2019stylegan-ffhq-1024x1024.pkl'
 sys.path.append(path_style_gan_code)
-
+"""
+sess = tf.InteractiveSession()
 try:
     with open(path_model, 'rb') as file:
         G, D, Gs = pickle.load(file)
 except FileNotFoundError:
     print('before running the code, download pre-trained model to project_root/asset_model/')
     raise
-    
-    
+"""
+
 # more code
 path_model_save = './asset_model/cnn_face_attr_celeba'
 
@@ -75,10 +78,10 @@ Takes in a 40-D description of an individual, converts this into a 512-D space
 @param  features: a list of 40 values
 returns: an image as a result of the prediction model
 """
-def feature_to_image(features, feature_direction=feature_direction, save_name=None):
+def feature_to_image(features, our_Gs, feature_direction=feature_direction, save_name=None):
     feature_lock_status = np.zeros(len(feature_direction)).astype('bool')
-    print(feature_direction)
-    print(type(feature_direction))
+    #print(feature_direction)
+    #print(type(feature_direction))
     
     feature_directoion_disentangled = feature_axis.disentangle_feature_axis_by_idx(
         feature_direction, idx_base=np.flatnonzero(feature_lock_status))
@@ -91,9 +94,19 @@ def feature_to_image(features, feature_direction=feature_direction, save_name=No
     
     for direction, feature_val, idx_feature in zip(feature_direction_transposed, features, range(len(features))):
         z_sample = np.add(z_sample, feature_val * feature_directoion_disentangled[:, idx_feature] * step_size)
+    """
+    sess = tf.InteractiveSession()
+    try:
+        with open(path_model, 'rb') as file:
+            G, D, Gs = pickle.load(file)
+    except FileNotFoundError:
+        print('before running the code, download pre-trained model to project_root/asset_model/')
+        raise
+    """
+    #print('general feature vec', features)
+    #print('z sample', z_sample[:20])
     
-    x_sample = generate_image.gen_single_img(z=z_sample, Gs=Gs)
-    
+    x_sample = generate_image.gen_single_img(z=z_sample, Gs=our_Gs)
     if save_name != None:
         generate_image.save_img(x_sample, save_name)
     
@@ -103,6 +116,7 @@ def feature_to_image(features, feature_direction=feature_direction, save_name=No
 
     buffered = BytesIO()
     im.save(buffered, format="JPEG")
+    #img_str = buffered.getvalue()
     img_str = base64.b64encode(buffered.getvalue())
         
     return img_str
@@ -111,16 +125,30 @@ def feature_to_image(features, feature_direction=feature_direction, save_name=No
 """
 Helper method to take in a feature dictionary that is partially filled, and generate a prediction image from it.
 """
-def dict_to_image(feature_dict, feature_names=feature_names):
+def dict_to_image(feature_dict, our_Gs, feature_names=feature_names):
     features = []
-    
+    name_map = {'Bald': 'bald',
+         'Big_nose': 'nose_size',
+         'Blond_Hair': 'color',
+         'Eyeglasses': 'eyeglasses',
+         'Goatee': 'goatee',
+         'Male': 'gender',
+         'Mustache': 'mustache',
+         'No_Beard': 'beard',
+         'Old': 'age',
+         'Pale_Skin': 'skin_tone',
+         'Pointy_Nose': 'nose_pointy',
+         'Receding_Hairline': 'hairline'}
+
     for feature_name in feature_names:
         if feature_name in feature_dict.keys():
             features.append(feature_dict.get(feature_name))
+        if feature_name in name_map and name_map[feature_name] in feature_dict.keys():
+            features.append(feature_dict.get(name_map[feature_name]))
         else:
             features.append(0)
 
-    feature_to_image(features)
+    return feature_to_image(features, our_Gs)
 
     
 def create_cnn_model(size_output=None, tf_print=False):
@@ -172,9 +200,11 @@ model.load_weights(get_list_model_save()[-1])
 def image_to_feature(image_path, model=model):
     img = np.asarray(PIL.Image.open(image_path).resize((128, 128), resample=PIL.Image.BILINEAR))
     x = np.stack([img], axis=0)
+    print(x)
     return model.predict(preprocess_input(x))
 
 def b64_image_to_feature(b64_str, model=model):
+    print(type(b64_str))
     image_data = re.sub('^data:image/.+;base64,', '', b64_str)
     img = np.asarray(PIL.Image.open(BytesIO(base64.b64decode(image_data))).resize((128, 128), resample=PIL.Image.BILINEAR))
     x = np.stack([img], axis=0)
