@@ -11,6 +11,8 @@ import keras.applications
 import keras.layers as layers
 from keras.applications.mobilenet import preprocess_input
 
+print(os.cwd())
+
 path_celeba_img = './data/processed/celebA_crop'
 path_celeba_att = './data/raw/celebA_annotation/list_attr_celeba.txt'
 path_model_save = './asset_model/cnn_face_attr_celeba'
